@@ -9,17 +9,7 @@ def get_move(player, board):
   valid_moves = get_valid_moves()
 
   # determine best move
-  for l in valid_moves.values():
-    l.sort()
-
-  if len(valid_moves["corner"]) is not 0:
-    return valid_moves["corner"][0]
-  elif len(valid_moves["edge"]) is not 0:
-    return valid_moves["edge"][0]
-  elif len(valid_moves["bland"]) is not 0:
-    return valid_moves["bland"][0]
-  elif len(valid_moves["adj_to_edge"]) is not 0:
-    return valid_moves["adj_to_edge"][0]
+  return opt_move(valid_moves)
 
 def get_valid_moves():
   valid_moves = {
@@ -43,6 +33,19 @@ def get_valid_moves():
       print(el, key)
 
   return valid_moves
+
+def opt_move(valid_moves):
+  for l in valid_moves.values():
+    l.sort()
+
+  if len(valid_moves["corner"]) is not 0:
+    return valid_moves["corner"][0]
+  elif len(valid_moves["edge"]) is not 0:
+    return valid_moves["edge"][0]
+  elif len(valid_moves["bland"]) is not 0:
+    return valid_moves["bland"][0]
+  elif len(valid_moves["adj_to_edge"]) is not 0:
+    return valid_moves["adj_to_edge"][0]
 
 class move_t:
   pos = None
