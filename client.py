@@ -4,8 +4,30 @@ import sys
 import json
 import socket
 
+def get_move(player, board):
+  # determine valid moves
+  valid_moves = get_valid_moves()
+
+  # determine best move
+  for l in valid_moves.values():
+    l.sort()
+
+  if len(valid_moves["corner"]) is not 0:
+    return valid_moves["corner"][0]
+  elif len(valid_moves["edge"]) is not 0:
+    return valid_moves["edge"][0]
+  elif len(valid_moves["bland"]) is not 0:
+    return valid_moves["bland"][0]
+  elif len(valid_moves["adj_to_edge"]) is not 0:
+    return valid_moves["adj_to_edge"][0]
+
 def get_valid_moves():
-  valid_moves = []
+  valid_moves = {
+    "corner": [],
+    "edge": [],
+    "bland": [],
+    "adj_to_edge": [],
+  }
 
   rows = len(board)
   cols = len(board[0])
@@ -13,25 +35,20 @@ def get_valid_moves():
     for j in range(cols):
       m = move_t(i, j, player, board)
       if m.is_valid():
-        valid_moves.append(m)
+        type_of_square = m.pos.pos_type(rows, cols)
+        valid_moves[type_of_square].append(m)
 
-  for mov in valid_moves:
-    print(mov)
+  for key, arr in valid_moves.items():
+    for el in arr:
+      print(el, key)
 
   return valid_moves
-
-def get_move(player, board):
-  valid_moves = get_valid_moves()
-
-  # TODO determine valid moves
-  # TODO determine best move
-  return valid_moves[0]
-
 
 class move_t:
   pos = None
   player = -1
   board = [[]]
+  will_flip = -1
 
   def __init__(self, _x, _y, _player, _board):
     self.pos = position(_x, _y)
@@ -68,6 +85,9 @@ class move_t:
     return board[pos.x][pos.y]
 
   def flips(self):
+    if self.will_flip is not - 1:
+      return self.will_flip
+
     total_move_will_flip = 0
     for i in range(-1, 2):
       for j in range(-1, 2):
@@ -92,7 +112,7 @@ class move_t:
 
           total_move_will_flip += flips_in_dir
 
-
+    self.will_flip = total_move_will_flip
     return total_move_will_flip
 
   def __str__(self):
@@ -100,9 +120,10 @@ class move_t:
     vstring = "valid" if validity else "not valid"
 
     return "[%d, %d] is %s" % (self.pos.x, self.pos.y, vstring)
+
+  def __lt__(self, other):
+    return self.will_flip > other.will_flip
   
-
-
 class position:
   x = -1
   y = -1
@@ -111,10 +132,23 @@ class position:
     self.x = _x
     self.y = _y
 
+  def pos_type(self, num_rows, num_cols):
+    if self.x is 0 or self.x is num_cols - 1:
+      if self.y is 0 or self.y is num_rows - 1:
+        return "corner"
+      else:
+         return "edge"
+    elif self.y is 0 or self.y is num_rows - 1:
+      return "edge"
+
+    elif self.x is 1 or self.x is num_cols - 2 or self.y is 1 or self.y is num_rows - 2:
+      return "adj_to_edge"
+
+    return "bland"
+
   def __add__(self, other):
     new_pos = position(self.x + other.x, self.y + other.y)
     return new_pos
-
 
 def prepare_response(move):
   response = '{}\n'.format(move).encode()
